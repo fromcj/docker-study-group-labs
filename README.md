@@ -378,7 +378,7 @@ This is difficult to explain in text so try and be in class for this one.
 1. `docker-compose down --rmi all --volumes --remove-orphans`
 
 # Lab 21: Docker Machine
->Docker Machine is a tool that lets you install Docker Engine on virtual hosts, and manage the hosts with docker-machine commands. You can use Machine to create Docker hosts on your local Mac or Windows box, on your company network, in your data center, or on cloud providers like Azure, AWS, or Digital Ocean.
+Docker Machine is a tool that lets you install Docker Engine on virtual hosts, and manage the hosts with docker-machine commands. You can use Machine to create Docker hosts on your local Mac or Windows box, on your company network, in your data center, or on cloud providers like Azure, AWS, or Digital Ocean.
 
 1. `git reset --hard`
 1. `cd solutions/lab-21`
@@ -390,11 +390,11 @@ This is difficult to explain in text so try and be in class for this one.
 1. `./fix-ssh-key-permissions.sh`
 1. `cat create-docker-machine.sh`
 1. `cat create-alpha-machine.sh`
-1. `./create-alpha-machine.sh us-east-1`
-1. `./create-bravo-machine.sh us-east-1`
-1. `./create-charlie-machine.sh us-east-1`
-1. `./create-delta-machine.sh us-east-1`
-1. `./create-echo-machine.sh us-east-1`
+1. `./create-alpha-machine.sh us-east-1 a`
+1. `./create-bravo-machine.sh us-east-1 a`
+1. `./create-charlie-machine.sh us-east-1 a`
+1. `./create-delta-machine.sh us-east-1 a`
+1. `./create-echo-machine.sh us-east-1 a`
 1. `cat fix-docker-permissions.sh`
 1. `./fix-docker-permissions.sh <alpha ip>`
 1. `./fix-docker-permissions.sh <bravo ip>`
@@ -425,7 +425,8 @@ This is difficult to explain in text so try and be in class for this one.
 1. `docker-machine stop bravo charlie delta echo`
 
 # Lab 22: Docker Swarm (creation)
->A swarm is a cluster of Docker Engines where you deploy services. The Docker Engine CLI includes the commands for swarm management, such as adding and removing nodes. The CLI also includes the commands you need to deploy services to the swarm and manage service orchestration. A node is an instance of the Docker Engine participating in the swarm.
+A swarm is a cluster of Docker Engines where you deploy services. The Docker Engine CLI includes the commands for swarm management, such as adding and removing nodes. The CLI also includes the commands you need to deploy services to the swarm and manage service orchestration. A node is an instance of the Docker Engine participating in the swarm.
+
 1. `git reset --hard`
 1. `cd solutions/lab-22`
 1. `./clean-slate-protocol.sh`
@@ -438,7 +439,8 @@ This is difficult to explain in text so try and be in class for this one.
 1. `./create-swarm.sh`
 
 # Lab 23: Docker Swarm (network creation)
->As of Docker 1.9.0, the ability to create a network specific to a set of containers was added.  There are couple forms of Docker networking but we'll be focusing on overlay networking, aka multi-host networking.  Based on Virtual Extensible LAN (VXLAN) technology, an overlay network gives each container participating in the network its own ip address.  The address is only routable to containers participating in the network.  Since each container gets its own address, you won't get port collisions and you don't have to play the "port mapping game" to find an open port to bind your service to.  Containers can participate in multiple networks so you have the ability to segregate parts of your architecture and still route traffic to where it needs to go.  Finally, networks created on the Swarm manager node are automatically made available to the Swarm workers.  There is a legacy networking mode that required a dedicated consensus server so if you see instructions requiring Consul or etcd to be installed, it is probably dealing with the legacy stuff.
+As of Docker 1.9.0, the ability to create a network specific to a set of containers was added.  There are couple forms of Docker networking but we'll be focusing on overlay networking, aka multi-host networking.  Based on Virtual Extensible LAN (VXLAN) technology, an overlay network gives each container participating in the network its own ip address.  The address is only routable to containers participating in the network.  Since each container gets its own address, you won't get port collisions and you don't have to play the "port mapping game" to find an open port to bind your service to.  Containers can participate in multiple networks so you have the ability to segregate parts of your architecture and still route traffic to where it needs to go.  Finally, networks created on the Swarm manager node are automatically made available to the Swarm workers.  There is a legacy networking mode that required a dedicated consensus server so if you see instructions requiring Consul or etcd to be installed, it is probably dealing with the legacy stuff.
+
 1. `git reset --hard`
 1. `cd solutions/lab-23`
 1. `./clean-slate-protocol.sh`
@@ -446,16 +448,155 @@ This is difficult to explain in text so try and be in class for this one.
 1. `./create-network.sh`
 
 # Lab 24: Docker Swarm (Global Services)
->Swarm supports two types of services.  One type, the Global Service, is a container that is targeted to all nodes in the swarm.  So, if you have 10 nodes in your swarm, then all 10 will contain the global services you have deployed.  The second type, the Replicated Service, is a container that is targeted to a specific deployment count.  For example, if I have a stateless web application and I specify a replication of 3, then 3 out of my 10 containers will be running an instance of the web application
+Swarm supports two types of services.  One type, the Global Service, is a container that is targeted to all nodes in the swarm.  So, if you have 10 nodes in your swarm, then all 10 will contain the global services you have deployed.  The second type, the Replicated Service, is a container that is targeted to a specific deployment count.  For example, if I have a stateless web application and I specify a replication of 3, then 3 out of my 10 containers will be running an instance of the web application
 ![Swarm Diagram](https://docs.docker.com/engine/swarm/images/replicated-vs-global.png)
+
 1. `git reset --hard`
 1. `cd solutions/lab-24`
 1. `./clean-slate-protocol.sh`
 1. `cat create-global-service.sh`
 1. `./create-global-service.sh`
 
+Notice all the nodes, including the manager node, now have hello-global service running on them?  If I were to add another node to the swarm, it would also get told to run the service.  When would you want to use a global service?  I use them for "bookkeeping" type of containers such as DataDog or Consul.
+
+# Lab 25: Docker Swarm (Replicated Services)
+Last time, we talked about global services.  Today we'll look at replicated services.  As the name suggests, the desire is to have multiple copies of a container running in the cluster.  Containers housing stateless applications, such as a static web site, are candidates for replication.  Containers that rely on local state will not work properly as a replicated service due to migration and load balancing issues.   So what is a replicated service? If you need multiple containers to be running, probably for availability reasons, you can easily tell Docker that you would like N number of containers running at all times.
+
+1. `git reset --hard`
+1. `cd solutions/lab-25`
+1. `./clean-slate-protocol.sh`
+1. `cat create-replicated-service.sh`
+1. `./create-replicated-service.sh`
+
+In the above example, we told Docker to deploy 2 copies of the alpine container into the cluster.  We don't care what nodes are running the containers, just as long as there are two of them.  If possible, Docker will schedule the containers on separate hosts.  If a container fails, then it will be replaced.  Very straightforward.  Next time, we'll showcase constrained services which give us a bit more control over the placement of our containers.
+
+# Lab 26: Docker Swarm (Constrained Services)
+Last time, we looked at replicated services.  Today we'll look at a nuanced version of replicated services: constrained services.  The primary difference between a replicated service and a constrained one is that we can put restrictions on where the containers can be run.  The simplest constraint is to put containers on nodes that have been tagged with a particular label.  You can also use other placement criteria using simple boolean expressions but the currently available selection attributes are more limited than what you'll find in other schedulers, such a Kubernetes or Nomad.
+
+1. `git reset --hard`
+1. `cd solutions/lab-26`
+1. `./clean-slate-protocol.sh`
+1. `cat create-constrained-service.sh`
+1. `./create-constrained-service.sh`
+
+In this example, we are asking to have our 3 alpine containers to only run on worker nodes and Docker will do its best to comply.  If there are no nodes tagged as being workers, Docker will wait until one becomes available and start the containers.  Next time, we'll learn how to scale down our running services.
+
+# Lab 27: Docker Swarm (Scale Down)
+Last time, we looked at constrained deployments.  Today we'll see how to scale our services down.  In truth, there really isn't much to do because Docker takes care of everything for us.  All we need to do is to tell the swarm how many instances we need currently.
+
+1. `git reset --hard`
+1. `cd solutions/lab-27`
+1. `./clean-slate-protocol.sh`
+1. `cat scale-down-service.sh`
+1. `./scale-down-service.sh`
+
+As you can see, we are telling Docker to scale back our hello-constrained service down to a single instance.  The interesting part of this example is that we can see that the swarm is turning off instances on nodes, leaving us with the single instance.  Again, this is an example of declarative operations.  We're telling Docker **what** we want, **not how to do it**.
+
+# Lab 28: Docker Swarm (Removal)
+Last time, we looked at how to scale down our services.  Today, we'll look at how to remove them all together.
+
+1. `git reset --hard`
+1. `cd solutions/lab-28`
+1. `./clean-slate-protocol.sh`
+1. `cat remove-service.sh`
+1. `./remove-service.sh`
+
+As you can see, removing a service is very straight forward and is simple as removing a file in Linux.
+
+# Lab 29: Docker Swarm (Upgrade)
+Last time, we saw how simple it was to remove a service from the swarm.  Today, we'll look at something a little more interesting: rolling upgrades.  The scenario is this, you have an existing collection of services deployed and you need to upgrade them to current bits.  You would love for the service to remain available during the upgrade process and avoid making your customers unhappy.  How can this be done?  The answer is Docker's rolling upgrades.  The idea is simple, once the process is started, one by one a service in the swarm gets replaced with a newer version.  During the process, you will have a mixture of the new and old bits so your solution cannot be sensitive to that fact.  Lets see how this looks in practice.
+
+1. `git reset --hard`
+1. `cd solutions/lab-29`
+1. `./clean-slate-protocol.sh`
+1. `cat upgrade-service.sh`
+1. `./upgrade-service.sh`
+
+In this simple example, we install version 3.0.6 of Redis into the swarm and later decide to upgrade Redis 3.0.7.  This example is contrived and doesn't incorporate things you might do in a real setting, such as monitoring of the state of the containers as they transition or what to do if there is a problem during the replacement process.
+
+# Lab 30: Docker Swarm (Maintenance)
+Last time, we looked at rolling upgrades.  Today, we'll learn how to temporarily take a node off-line for maintenance. At some point, you are probably going to have turn your node off and perform some maintenance on the box it is running on.  It could be a simple as upgrading the version of Docker or as complex as swapping out a drive.  During that time, you want to tell the Swarm that the node is temporarily going away and that some other node needs to take its place in the interim.  Thankfully, the process is pretty simple.
+
+1. `git reset --hard`
+1. `cd solutions/lab-30`
+1. `./clean-slate-protocol.sh`
+1. `cat maintenance-mode.sh`
+1. `./maintenance-mode.sh`
+
+Things to note in the above session. First, the work shifts from delta to echo.  Second, once we bring delta back on-line the work remains with echo: no rebalancing of the work occurs.
+
+# Lab 31: Docker Swarm (Service Mesh)
+>Docker Engine swarm mode makes it easy to publish ports for services to make them available to resources outside the swarm. All nodes participate in an ingress routing mesh. The routing mesh enables each node in the swarm to accept connections on published ports for any service running in the swarm, even if there’s no task running on the node. The routing mesh routes all incoming requests to published ports on available nodes to an active container.
+
+![Service Mesh Diagram](https://docs.docker.com/engine/swarm/images/ingress-routing-mesh.png)
+
+1. `git reset --hard`
+1. `cd solutions/lab-31`
+1. `./clean-slate-protocol.sh`
+1. `cat service-mesh.sh`
+1. `./service-mesh.sh`
+1. adjust the `docker-machine` security group to allows port 80 traffic to flow
+1. run `watch 'curl --silent <IP address> | python3 -m json.tool'`, noticing the changing address and `HOSTNAME`
+1. look up the **public** address of some of the other nodes and hit those
+1. adjust the scale up or down and see how results are affected
+1. `docker-machine ssh bravo docker service scale nginx=2`
+1. `docker-machine ssh bravo docker service ps nginx`
+
+# Lab 32: Function as a Service (FaaS)
+>The business has decided that in order to stay competitive, our product needs to support developer extension points.  They want an experience similar to AWS Lambda where code written in a variety of programming languages can interact with our system in a safe and predictable manner.  Luckily, we've already covered everything we'll need to produce a Docker-based proof of concept.  In this lab, we'll create a FaaS implementation as a series of short shell scripts that interact with Docker that simulates the developer experience.  The implementation must support the following:
+* JVM and Python based functions
+* functions that accept a string and that return a string
+* developer can specify the following runtime constraints
+  * RAM
+  * CPU
+  * whether networking is needed or not
+  * the name of the script to run
+  * a file containing environment variables that the script can use for configuration
+
+Create a script that launches a container using the appropriate image and runtime switches.  You will have two scripts, one for each runtime.  Your task is complete if the string passed to the script is printed in uppercase.  There is a solution in `solutions/lab-32` if you get stuck.
+
+1. `git reset --hard`
+1. `cd labs/lab-32`
+1. `./clean-slate-protocol.sh`
+1. `cat faas.env`
+1. `cat faas.groovy`
+1. `cat faas.py`
+1. `cat run-groovy-function.sh`
+1. `cat run-python-function.sh`
+1. poke around [Docker Hub](https://hub.docker.com/explore/) to find the appropriate images
+
+# Lab 33: AWS Docker Registry
+>In this lab, we will host our images on Amazon instead of using public repositories.  Normally, this is done for security and operational reasons.  We will create the registry in our AWS account, push an image to it and have one of our classmates pull from it.  The container simply prints the current date and time.
+
+1. `git reset --hard`
+1. `git pull`
+1. `cd labs/lab-33`
+1. `./clean-slate-protocol.sh`
+1. edit `Dockerfile` so that it creates an image that runs the Linux `date` command
+1. edit `create-docker-image.sh` as needed to create the proper image
+1. `./create-docker-image.sh` to create the image
+1. run the proper Docker command to verify the image built correctly
+1. edit `test-image.sh` so that it tests your image
+1. `./test-image.sh` to verify your image works correctly
+1. log into your AWS account, navigating to *Compute->Elastic Container Service*
+1. create your repository.  You can call it anything you want but `aws-study-group` will be used in the solution
+1. follow the instructions from Amazon on how to authenticate to your registry
+1. edit `tag-image.sh` so that it tags the existing image with a tag suitable for your new repository
+1. `./tag-image.sh` to tag the image
+1. run the proper Docker command to verify the image got tagged correctly
+1. edit `push.image.sh`
+1. `./push-image.sh` to push it to the registry
+1. use the console to verify the image made it
+1. select a classmate
+1. using the AWS console, give their account the ability to pull down your image
+1. have them pull down your image and run it
+1. Using the AWS console, figure out how to auto-delete images that are older than 30 days
+
+
+
+
+# Lab N: [Docker Store](https://store.docker.com/)
 # Lab N: Consul, Service Discovery and Docker
-# Lab N: Amazon EC2 Container Registry
 # Lab N: Personal Image Registry (4.8)
 # Lab N: Dockerfile Madness (advanced) (4.5.10.10)
 # Lab N: Docker Log Drivers (3.9)
